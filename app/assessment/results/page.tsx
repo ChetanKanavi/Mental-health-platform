@@ -5,12 +5,10 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Navigation } from "@/components/navigation"
 import { 
-  Heart, Wind, BookOpen, Coffee, Phone, ArrowRight, RotateCcw, 
-  Moon, Users, Sparkles, Activity, Brain, Shield, Clock, ChevronRight,
-  Target, Sun, Leaf, MessageCircle
+  Heart, Wind, BookOpen, Coffee, Phone, ArrowRight, RotateCcw,
+  Moon, Zap, Users, Smile, Brain, Shield, Target, Activity, ExternalLink
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -22,14 +20,6 @@ interface AssessmentResults {
   totalScore: number
   maxScore: number
   completedAt: string
-}
-
-interface Resource {
-  title: string
-  description: string
-  steps: string[]
-  duration: string
-  icon: typeof Wind
 }
 
 const levelConfig = {
@@ -56,304 +46,242 @@ const levelConfig = {
   },
 }
 
-// Resources mapped by assessment type
-const resourcesByType: Record<string, Resource[]> = {
-  "stress-anxiety": [
-    {
-      title: "4-7-8 Breathing Technique",
-      description: "A calming breathing pattern that activates your parasympathetic nervous system.",
-      steps: [
-        "Exhale completely through your mouth",
-        "Inhale quietly through your nose for 4 counts",
-        "Hold your breath for 7 counts",
-        "Exhale completely through your mouth for 8 counts",
-        "Repeat this cycle 3-4 times"
-      ],
-      duration: "2-3 minutes",
-      icon: Wind
-    },
-    {
-      title: "Grounding: 5-4-3-2-1 Technique",
-      description: "Use your senses to anchor yourself in the present moment during anxiety.",
-      steps: [
-        "Notice 5 things you can SEE around you",
-        "Notice 4 things you can physically FEEL",
-        "Notice 3 things you can HEAR",
-        "Notice 2 things you can SMELL",
-        "Notice 1 thing you can TASTE"
-      ],
-      duration: "3-5 minutes",
-      icon: Brain
-    },
-    {
-      title: "Progressive Muscle Relaxation",
-      description: "Systematically tense and release muscle groups to reduce physical tension.",
-      steps: [
-        "Find a comfortable position, close your eyes",
-        "Start with your feet - tense muscles for 5 seconds",
-        "Release and notice the relaxation for 10 seconds",
-        "Move up through legs, abdomen, arms, and face",
-        "End with a full body scan"
-      ],
-      duration: "10-15 minutes",
-      icon: Activity
-    }
-  ],
-  "depression": [
-    {
-      title: "Behavioral Activation",
-      description: "Gradually increase engagement in meaningful activities to improve mood.",
-      steps: [
-        "List activities you used to enjoy or might enjoy",
-        "Rate each activity by difficulty (1-10)",
-        "Start with easier activities (rated 1-3)",
-        "Schedule one small activity daily",
-        "Rate your mood before and after"
-      ],
-      duration: "Ongoing practice",
-      icon: Sparkles
-    },
-    {
-      title: "Gratitude Journaling",
-      description: "Train your brain to notice positive aspects of life.",
-      steps: [
-        "Each evening, write down 3 things you are grateful for",
-        "Be specific - not just people but what they did",
-        "Include small things like a warm cup of tea",
-        "Reflect on why each thing matters to you",
-        "Review past entries when feeling low"
-      ],
-      duration: "5-10 minutes daily",
-      icon: BookOpen
-    },
-    {
-      title: "Morning Routine for Low Mood",
-      description: "Structure your mornings to set a positive tone for the day.",
-      steps: [
-        "Wake at a consistent time each day",
-        "Open curtains immediately for natural light",
-        "Do 5 minutes of gentle stretching",
-        "Eat a small, nutritious breakfast",
-        "Identify one small goal for the day"
-      ],
-      duration: "20-30 minutes",
-      icon: Sun
-    }
-  ],
-  "sleep": [
-    {
-      title: "Sleep Hygiene Checklist",
-      description: "Essential habits for better sleep quality.",
-      steps: [
-        "Keep a consistent sleep schedule, even on weekends",
-        "Make your bedroom dark, quiet, and cool",
-        "Remove electronics from the bedroom",
-        "Avoid caffeine after 2 PM",
-        "Limit alcohol - it disrupts sleep cycles"
-      ],
-      duration: "Ongoing practice",
-      icon: Shield
-    },
-    {
-      title: "Wind-Down Routine",
-      description: "Signal to your body that it is time to prepare for sleep.",
-      steps: [
-        "Begin 1 hour before desired bedtime",
-        "Dim lights throughout your home",
-        "Stop using screens or use blue light filters",
-        "Take a warm bath or shower",
-        "Read a book or practice gentle stretching"
-      ],
-      duration: "60 minutes before bed",
-      icon: Moon
-    },
-    {
-      title: "Body Scan for Sleep",
-      description: "A relaxation technique to release tension before sleep.",
-      steps: [
-        "Lie comfortably in bed, close your eyes",
-        "Focus attention on your toes, notice any sensations",
-        "Slowly move attention up through your body",
-        "At each area, breathe and release tension",
-        "If your mind wanders, gently return to the scan"
-      ],
-      duration: "10-20 minutes",
-      icon: Activity
-    }
-  ],
-  "burnout": [
-    {
-      title: "Energy Audit",
-      description: "Identify what drains and restores your energy.",
-      steps: [
-        "For one week, note activities and energy levels",
-        "Mark each activity as energizing or draining",
-        "Look for patterns in times, people, and tasks",
-        "Identify one draining activity to reduce",
-        "Add one energizing activity to your week"
-      ],
-      duration: "1 week assessment",
-      icon: Activity
-    },
-    {
-      title: "Boundary Setting Practice",
-      description: "Learn to say no and protect your time and energy.",
-      steps: [
-        "Identify areas where you feel overcommitted",
-        "Practice: 'Let me check my schedule and get back to you'",
-        "Use 'I' statements: 'I am not able to take this on'",
-        "Start with low-stakes situations",
-        "Remember: No is a complete sentence"
-      ],
-      duration: "Ongoing practice",
-      icon: Shield
-    },
-    {
-      title: "Micro-Recovery Breaks",
-      description: "Short breaks throughout the day to prevent energy depletion.",
-      steps: [
-        "Set a timer for every 90 minutes of work",
-        "Take a 5-10 minute break away from your desk",
-        "Step outside for fresh air if possible",
-        "Do some light stretching or walking",
-        "Hydrate and have a healthy snack if needed"
-      ],
-      duration: "5-10 minutes every 90 minutes",
-      icon: Coffee
-    }
-  ],
-  "social": [
-    {
-      title: "Social Connection Plan",
-      description: "Combat isolation by building supportive relationships.",
-      steps: [
-        "List people you feel comfortable reaching out to",
-        "Schedule one small social interaction weekly",
-        "Start small - a text, call, or brief visit",
-        "Join a group activity or class",
-        "Consider support groups for shared experiences"
-      ],
-      duration: "Ongoing practice",
-      icon: Users
-    },
-    {
-      title: "Conversation Starters",
-      description: "Tips for initiating meaningful conversations.",
-      steps: [
-        "Ask open-ended questions (How, What, Why)",
-        "Practice active listening - paraphrase what you heard",
-        "Share something about yourself",
-        "Show genuine curiosity about others",
-        "Follow up on previous conversations"
-      ],
-      duration: "Use in conversations",
-      icon: MessageCircle
-    },
-    {
-      title: "Handling Social Anxiety",
-      description: "Techniques for managing anxiety in social situations.",
-      steps: [
-        "Arrive early to adjust to the environment",
-        "Have an 'out' - know it is okay to leave",
-        "Focus on one person at a time",
-        "Prepare a few conversation topics beforehand",
-        "Challenge negative self-talk with evidence"
-      ],
-      duration: "Before and during events",
-      icon: Shield
-    }
-  ],
-  "self-esteem": [
-    {
-      title: "Self-Compassion Practice",
-      description: "Treat yourself with kindness you would show a friend.",
-      steps: [
-        "Notice when you are being self-critical",
-        "Ask: What would I say to a friend here?",
-        "Place a hand on your heart and speak kindly",
-        "Acknowledge that struggle is human",
-        "Write yourself a compassionate letter"
-      ],
-      duration: "As needed",
-      icon: Heart
-    },
-    {
-      title: "Strengths Inventory",
-      description: "Identify and leverage your unique strengths.",
-      steps: [
-        "List 5 things you do well",
-        "Ask trusted friends what strengths they see",
-        "Recall past successes and what you used",
-        "Look for ways to use strengths more",
-        "Celebrate when you succeed"
-      ],
-      duration: "30 minutes reflection",
-      icon: Sparkles
-    },
-    {
-      title: "Achievement Log",
-      description: "Document accomplishments to build confidence.",
-      steps: [
-        "Each day, write 3 things you accomplished",
-        "Include small wins (made the bed, sent an email)",
-        "Note challenges you overcame",
-        "Review weekly to see progress",
-        "Use as evidence when self-doubt arises"
-      ],
-      duration: "5 minutes daily",
-      icon: Target
-    }
-  ]
+// Assessment-specific resources and suggestions
+const assessmentResources = {
+  "stress-anxiety": {
+    category: "stress-anxiety",
+    title: "Stress & Anxiety Resources",
+    color: "text-chart-1",
+    bgColor: "bg-chart-1/10",
+    icon: Wind,
+    suggestions: [
+      {
+        icon: Wind,
+        title: "Practice Deep Breathing",
+        description: "Try the 4-7-8 technique: breathe in for 4 counts, hold for 7, exhale for 8.",
+      },
+      {
+        icon: Target,
+        title: "Use Grounding Techniques",
+        description: "The 5-4-3-2-1 method can help during moments of acute anxiety.",
+      },
+      {
+        icon: Brain,
+        title: "Schedule Worry Time",
+        description: "Designate 15-20 minutes daily for worrying, then let go outside that time.",
+      },
+      {
+        icon: Activity,
+        title: "Move Your Body",
+        description: "Regular exercise can be as effective as medication for mild anxiety.",
+      },
+    ],
+    detailedResources: [
+      { title: "Breathing Techniques", description: "4-7-8, box breathing, diaphragmatic breathing" },
+      { title: "Grounding Exercises", description: "5-4-3-2-1 technique, body scan, cold water reset" },
+      { title: "Cognitive Strategies", description: "Worry time, thought challenging, STOP technique" },
+    ]
+  },
+  "depression": {
+    category: "depression",
+    title: "Depression Resources",
+    color: "text-chart-2",
+    bgColor: "bg-chart-2/10",
+    icon: Heart,
+    suggestions: [
+      {
+        icon: Activity,
+        title: "Try Behavioral Activation",
+        description: "Plan one small, achievable activity each day, even when motivation is low.",
+      },
+      {
+        icon: Users,
+        title: "Connect with Others",
+        description: "Send one text or make one call each day, even if brief.",
+      },
+      {
+        icon: Heart,
+        title: "Practice Self-Compassion",
+        description: "Treat yourself as you would treat a good friend going through a hard time.",
+      },
+      {
+        icon: Coffee,
+        title: "Start Small",
+        description: "Use the 5-minute rule: commit to just 5 minutes of an activity.",
+      },
+    ],
+    detailedResources: [
+      { title: "Behavioral Activation", description: "Activity scheduling, 5-minute rule, pleasure and mastery" },
+      { title: "Thought Patterns", description: "Catching negative thoughts, self-compassion, gratitude practice" },
+      { title: "Social Connection", description: "Reaching out daily, support groups, setting boundaries" },
+    ]
+  },
+  "sleep": {
+    category: "sleep",
+    title: "Sleep Quality Resources",
+    color: "text-chart-3",
+    bgColor: "bg-chart-3/10",
+    icon: Moon,
+    suggestions: [
+      {
+        icon: Moon,
+        title: "Optimize Your Environment",
+        description: "Keep your bedroom cool (60-67F), dark, and reserved for sleep only.",
+      },
+      {
+        icon: Coffee,
+        title: "Watch Your Caffeine",
+        description: "Avoid caffeine after 2pm - it has a half-life of 5-6 hours.",
+      },
+      {
+        icon: Shield,
+        title: "Create a Wind-Down Routine",
+        description: "Start relaxing 1 hour before bed. Dim lights and avoid screens.",
+      },
+      {
+        icon: Activity,
+        title: "Consistent Wake Time",
+        description: "Wake at the same time every day, even weekends. This is key for sleep quality.",
+      },
+    ],
+    detailedResources: [
+      { title: "Sleep Environment", description: "Temperature control, darkness, bed association" },
+      { title: "Sleep Schedule", description: "Consistent wake time, wind-down routine, avoid clock watching" },
+      { title: "Pre-Sleep Practices", description: "Screen curfew, relaxation techniques, worry journal" },
+    ]
+  },
+  "burnout": {
+    category: "burnout",
+    title: "Burnout Recovery Resources",
+    color: "text-chart-4",
+    bgColor: "bg-chart-4/10",
+    icon: Zap,
+    suggestions: [
+      {
+        icon: Shield,
+        title: "Set Clear Boundaries",
+        description: "Define work hours and communicate them. Turn off notifications after hours.",
+      },
+      {
+        icon: Activity,
+        title: "Take Strategic Breaks",
+        description: "Use the Pomodoro technique: work 25 minutes, break for 5 minutes.",
+      },
+      {
+        icon: Heart,
+        title: "Prioritize True Rest",
+        description: "Rest is not just sleep. Include activities that genuinely restore you.",
+      },
+      {
+        icon: Brain,
+        title: "Redefine Success",
+        description: "Include well-being metrics alongside productivity. You are not your job.",
+      },
+    ],
+    detailedResources: [
+      { title: "Boundary Setting", description: "Work hours, saying no, digital boundaries" },
+      { title: "Energy Management", description: "Energy audit, strategic breaks, peak hour protection" },
+      { title: "Recovery Activities", description: "True rest, micro-recovery, vacation planning" },
+    ]
+  },
+  "social-wellbeing": {
+    category: "social-wellbeing",
+    title: "Social Wellbeing Resources",
+    color: "text-chart-5",
+    bgColor: "bg-chart-5/10",
+    icon: Users,
+    suggestions: [
+      {
+        icon: Users,
+        title: "Initiate Contact",
+        description: "Do not wait for others to reach out. Send the first text or suggest a meetup.",
+      },
+      {
+        icon: BookOpen,
+        title: "Practice Active Listening",
+        description: "Give full attention, ask follow-up questions, reflect back what you heard.",
+      },
+      {
+        icon: Shield,
+        title: "Set Healthy Boundaries",
+        description: "It is okay to say no, need space, or have different opinions in relationships.",
+      },
+      {
+        icon: Target,
+        title: "Start Small",
+        description: "Begin with low-stakes interactions if social situations feel challenging.",
+      },
+    ],
+    detailedResources: [
+      { title: "Building Connections", description: "Quality over quantity, initiating contact, joining communities" },
+      { title: "Communication Skills", description: "Active listening, expressing appreciation, difficult conversations" },
+      { title: "Healthy Relationships", description: "Setting boundaries, addressing issues early, mutual support" },
+    ]
+  },
+  "self-esteem": {
+    category: "self-esteem",
+    title: "Self-Esteem Resources",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+    icon: Smile,
+    suggestions: [
+      {
+        icon: Heart,
+        title: "Practice Self-Compassion",
+        description: "Treat yourself as you would treat a good friend. Notice your inner critic.",
+      },
+      {
+        icon: Target,
+        title: "Celebrate Small Wins",
+        description: "Keep a done list alongside your to-do list. Acknowledge accomplishments.",
+      },
+      {
+        icon: Brain,
+        title: "Adopt a Growth Mindset",
+        description: "See challenges as opportunities. Say 'I cannot do this yet' not 'I cannot do this.'",
+      },
+      {
+        icon: Shield,
+        title: "Define Your Own Success",
+        description: "What does a good life mean to you? Not what others say it should be.",
+      },
+    ],
+    detailedResources: [
+      { title: "Self-Compassion", description: "Kind self-talk, common humanity, mindful awareness" },
+      { title: "Building Confidence", description: "Celebrating wins, growth mindset, taking action despite fear" },
+      { title: "Values and Identity", description: "Identifying values, stop comparing, defining your own success" },
+    ]
+  }
 }
 
-// Default resources for general use
-const defaultResources: Resource[] = [
+// Default suggestions for general wellness
+const defaultSuggestions = [
   {
+    icon: Wind,
     title: "Practice Deep Breathing",
     description: "Try the 4-7-8 technique: breathe in for 4 counts, hold for 7, exhale for 8.",
-    steps: [
-      "Find a comfortable position",
-      "Breathe in for 4 counts",
-      "Hold for 7 counts",
-      "Exhale for 8 counts",
-      "Repeat 3-4 times"
-    ],
-    duration: "2-3 minutes",
-    icon: Wind
   },
   {
+    icon: BookOpen,
     title: "Start Journaling",
     description: "Write down your thoughts and feelings for 10 minutes each day.",
-    steps: [
-      "Set aside 10 minutes",
-      "Write freely without judgment",
-      "Include thoughts and feelings",
-      "Note any patterns",
-      "Review weekly"
-    ],
-    duration: "10 minutes daily",
-    icon: BookOpen
   },
   {
+    icon: Coffee,
     title: "Take Regular Breaks",
     description: "Step away from work every 90 minutes to rest and recharge.",
-    steps: [
-      "Set a timer for 90 minutes",
-      "Take a 5-10 minute break",
-      "Move away from your desk",
-      "Do some light stretching",
-      "Hydrate"
-    ],
-    duration: "5-10 minutes",
-    icon: Coffee
-  }
+  },
+  {
+    icon: Heart,
+    title: "Connect with Others",
+    description: "Reach out to a friend, family member, or support group.",
+  },
 ]
 
 export default function ResultsPage() {
   const router = useRouter()
   const [results, setResults] = useState<AssessmentResults | null>(null)
   const [level, setLevel] = useState<ResultLevel>("low")
-  const [expandedResource, setExpandedResource] = useState<string | null>(null)
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem("assessmentResults")
@@ -388,27 +316,23 @@ export default function ResultsPage() {
   }
 
   const config = levelConfig[level]
-  
-  // Get resources based on assessment type, fallback to default
-  const suggestedResources = results.assessmentType 
-    ? resourcesByType[results.assessmentType] || defaultResources
-    : defaultResources
-
-  // Get category name for resources link
-  const categoryId = results.assessmentType || "stress-anxiety"
+  const assessmentType = results.assessmentType || "stress-anxiety"
+  const resourceData = assessmentResources[assessmentType as keyof typeof assessmentResources] || assessmentResources["stress-anxiety"]
+  const suggestions = resourceData?.suggestions || defaultSuggestions
+  const ResourceIcon = resourceData?.icon || Wind
 
   return (
     <>
       <Navigation />
       <div className="min-h-screen bg-background pt-14 md:pt-16">
-        <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
               Your Results
             </h1>
             <p className="mt-2 text-muted-foreground">
-              Here is a summary of your self-assessment. Remember, this is for self-awareness only.
+              Here is a summary of your {results.assessmentTitle || "self-assessment"}. Remember, this is for self-awareness only.
             </p>
           </div>
 
@@ -432,80 +356,123 @@ export default function ResultsPage() {
             </CardHeader>
           </Card>
 
-          {/* Personalized Resources */}
+          {/* Recommended Resources Section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground">
-                Recommended Resources for You
+                Recommended for You
               </h2>
-              <Link href={`/resources?tab=${categoryId}`}>
-                <Button variant="ghost" size="sm" className="text-primary gap-1">
-                  View All <ChevronRight className="w-4 h-4" />
-                </Button>
+              <Link 
+                href={`/resources?category=${resourceData.category}`}
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
+                View all resources
+                <ExternalLink className="w-3 h-3" />
               </Link>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Based on your {results.assessmentTitle || "assessment"} results, these techniques may help:
-            </p>
             
-            <div className="space-y-4">
-              {suggestedResources.map((resource) => {
-                const Icon = resource.icon
-                const isExpanded = expandedResource === resource.title
+            {/* Resource Category Card */}
+            <Card className={cn("mb-4", resourceData.bgColor)}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center bg-background"
+                  )}>
+                    <ResourceIcon className={cn("w-5 h-5", resourceData.color)} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-foreground">{resourceData.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Based on your {results.assessmentTitle || "assessment"} results
+                    </p>
+                  </div>
+                  <Link href={`/resources?category=${resourceData.category}`}>
+                    <Button variant="outline" size="sm" className="bg-background">
+                      Explore
+                      <ArrowRight className="w-3 h-3 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Resource Topics */}
+            <div className="grid gap-3 sm:grid-cols-3 mb-6">
+              {resourceData.detailedResources.map((resource) => (
+                <Link 
+                  key={resource.title}
+                  href={`/resources?category=${resourceData.category}`}
+                  className="block"
+                >
+                  <Card className="h-full hover:border-primary/50 transition-colors">
+                    <CardContent className="p-3">
+                      <h4 className="font-medium text-foreground text-sm">{resource.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">{resource.description}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Tips */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
+              Quick Tips to Try Today
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {suggestions.map((suggestion) => {
+                const Icon = suggestion.icon
                 return (
-                  <Card 
-                    key={resource.title}
-                    className={isExpanded ? "border-primary/30" : ""}
-                  >
-                    <CardHeader 
-                      className="cursor-pointer py-4"
-                      onClick={() => setExpandedResource(isExpanded ? null : resource.title)}
-                    >
+                  <Card key={suggestion.title}>
+                    <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Icon className="w-4 h-4 text-primary" />
+                        <div className={cn(
+                          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                          resourceData.bgColor
+                        )}>
+                          <Icon className={cn("w-4 h-4", resourceData.color)} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <h3 className="font-medium text-foreground text-sm">
-                                {resource.title}
-                              </h3>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {resource.description}
-                              </p>
-                            </div>
-                            <ChevronRight className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                          </div>
-                          <Badge variant="secondary" className="mt-2 text-xs">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {resource.duration}
-                          </Badge>
+                        <div>
+                          <h3 className="font-medium text-foreground text-sm">
+                            {suggestion.title}
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {suggestion.description}
+                          </p>
                         </div>
                       </div>
-                    </CardHeader>
-                    {isExpanded && (
-                      <CardContent className="pt-0 pb-4">
-                        <div className="pl-12">
-                          <h4 className="font-medium text-xs text-foreground mb-2">How to Practice:</h4>
-                          <ol className="space-y-1.5">
-                            {resource.steps.map((step, index) => (
-                              <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
-                                <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-xs font-medium text-primary">
-                                  {index + 1}
-                                </span>
-                                {step}
-                              </li>
-                            ))}
-                          </ol>
-                        </div>
-                      </CardContent>
-                    )}
+                    </CardContent>
                   </Card>
                 )
               })}
             </div>
           </div>
+
+          {/* Additional Support for elevated results */}
+          {(level === "moderate" || level === "high") && (
+            <Card className="mb-8 border-secondary bg-secondary/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-foreground">Additional Support Options</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
+                    Consider speaking with a mental health professional for personalized guidance
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
+                    Track your mood daily to identify patterns and triggers
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
+                    Explore our detailed self-help resources for evidence-based techniques
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Crisis Support - Only show for high level */}
           {level === "high" && (
@@ -531,6 +498,9 @@ export default function ResultsPage() {
                   <p className="text-muted-foreground">
                     <strong className="text-foreground">Crisis Text Line:</strong> Text HOME to 741741 (US)
                   </p>
+                  <p className="text-muted-foreground">
+                    <strong className="text-foreground">SAMHSA Helpline:</strong> 1-800-662-4357
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -544,11 +514,22 @@ export default function ResultsPage() {
                 Take Another Assessment
               </Button>
             </Link>
-            <Link href="/mood-tracker" className="flex-1">
+            <Link href={`/resources?category=${resourceData.category}`} className="flex-1">
               <Button className="w-full gap-2">
-                Log Your Mood
+                Explore Resources
                 <ArrowRight className="w-4 h-4" />
               </Button>
+            </Link>
+          </div>
+
+          {/* Secondary Actions */}
+          <div className="flex justify-center gap-4 mt-4">
+            <Link href="/mood-tracker" className="text-sm text-primary hover:underline">
+              Log your mood
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link href="/dashboard" className="text-sm text-primary hover:underline">
+              Go to dashboard
             </Link>
           </div>
 
