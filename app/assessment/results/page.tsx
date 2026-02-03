@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils"
 type ResultLevel = "low" | "moderate" | "high"
 
 interface AssessmentResults {
+  assessmentType?: string
+  assessmentTitle?: string
   totalScore: number
   maxScore: number
   completedAt: string
@@ -130,7 +132,7 @@ export default function ResultsPage() {
                 </span>
               </div>
               <CardTitle className="text-xl text-foreground">
-                Stress & Anxiety Level: {config.label}
+                {results.assessmentTitle || "Assessment"} Level: {config.label}
               </CardTitle>
               <CardDescription className="text-base mt-2">
                 {config.description}
