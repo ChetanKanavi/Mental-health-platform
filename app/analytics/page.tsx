@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button"
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Navigation } from "@/components/navigation"
 import { cn } from "@/lib/utils"
@@ -269,8 +268,17 @@ export default function AnalyticsPage() {
                       tickFormatter={(value) => moodLabels[value]?.charAt(0) || ""}
                     />
                     <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      formatter={(value: number) => [moodLabels[value] || value, "Mood"]}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload || !payload.length) return null
+                        const value = payload[0]?.value as number
+                        if (value === null || value === undefined) return null
+                        return (
+                          <div className="rounded-lg border bg-background p-2 shadow-sm">
+                            <p className="text-xs text-muted-foreground">{label}</p>
+                            <p className="text-sm font-medium">{moodLabels[value] || value}</p>
+                          </div>
+                        )
+                      }}
                     />
                     <Line
                       type="monotone"
@@ -324,8 +332,17 @@ export default function AnalyticsPage() {
                       axisLine={false}
                     />
                     <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      formatter={(value: number) => [moodLabels[value] || value, "Mood"]}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload || !payload.length) return null
+                        const value = payload[0]?.value as number
+                        if (value === null || value === undefined) return null
+                        return (
+                          <div className="rounded-lg border bg-background p-2 shadow-sm">
+                            <p className="text-xs text-muted-foreground">{label}</p>
+                            <p className="text-sm font-medium">{moodLabels[value] || value}</p>
+                          </div>
+                        )
+                      }}
                     />
                     <Bar 
                       dataKey="mood" 
