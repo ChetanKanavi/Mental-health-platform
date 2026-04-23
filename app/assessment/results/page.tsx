@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
-import { Heart, Wind, BookOpen, Coffee, Phone, ArrowRight, RotateCcw, Zap, Moon, Users, Lightbulb } from "lucide-react"
+import { Heart, Wind, BookOpen, Coffee, ArrowRight, RotateCcw, Zap, Moon, Users, Lightbulb } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -210,35 +210,6 @@ export default function ResultsPage() {
                 </CardContent>
               </Card>
             </div>
-          )}
-
-          {/* Crisis Support - Only show for high level */}
-          {level === "high" && (
-            <Card className="mb-8 border-primary/30 bg-primary/5">
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-                    <Phone className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-foreground">Support is Available</CardTitle>
-                    <CardDescription className="mt-1">
-                      If {"you're"} struggling, please know that help is available and reaching out is a sign of strength.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <p className="text-muted-foreground">
-                    <strong className="text-foreground">National Suicide Prevention Lifeline:</strong> 988 (US)
-                  </p>
-                  <p className="text-muted-foreground">
-                    <strong className="text-foreground">Crisis Text Line:</strong> Text HOME to 741741 (US)
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           )}
 
           {/* Actions */}
