@@ -1,17 +1,54 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ClipboardList, Heart, BarChart3, ArrowRight, Info } from "lucide-react"
+import { ClipboardList, Heart, BarChart3, ArrowRight, Info, LogOut } from "lucide-react"
 import { Navigation } from "@/components/navigation"
-
-// Simulated user data - in production this would come from auth/database
-const user = {
-  firstName: "Sarah",
-}
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth"
+import { useRouter } from "next/navigation"
+import { getUserProfile } from "@/lib/firestore"
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const { user, logout } = useFirebaseAuth()
+  const [firstName, setFirstName] = useState("Friend")
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        try {
+          const profile = await getUserProfile(user.uid)
+          if (profile && profile.firstName) {
+            setFirstName(profile.firstName)
+          } else {
+            setFirstName(user.displayName || user.email?.split("@")[0] || "Friend")
+          }
+        } catch (error) {
+          console.error("[v0] Error loading user profile:", error)
+          setFirstName(user.email?.split("@")[0] || "Friend")
+        }
+      } else {
+        // Redirect to login if not authenticated
+        router.push("/login")
+      }
+      setIsLoading(false)
+    }
+
+    loadUserData()
+  }, [user, router])
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push("/login")
+    } catch (error) {
+      console.error("[v0] Error logging out:", error)
+    }
+  }
+
   const currentHour = new Date().getHours()
   let greeting = "Good morning"
   if (currentHour >= 12 && currentHour < 17) {
@@ -20,16 +57,41 @@ export default function DashboardPage() {
     greeting = "Good evening"
   }
 
+  if (isLoading) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background pt-14 md:pt-16 flex items-center justify-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <Navigation />
       <div className="min-h-screen bg-background pt-14 md:pt-16">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Welcome Section */}
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
-              {greeting}, {user.firstName}
-            </h1>
+          {/* Welcome Section with Logout */}
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
+                {greeting}, {firstName}
+              </h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
+
+          <div>
             <p className="mt-2 text-muted-foreground">
               {"How are you feeling today? Take a moment to check in with yourself."}
             </p>

@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
 import { Heart, Wind, BookOpen, Coffee, ArrowRight, RotateCcw, Zap, Moon, Users, Lightbulb } from "lucide-react"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth"
+import { saveAssessmentResult } from "@/lib/firestore"
 
 type ResultLevel = "low" | "moderate" | "high"
 
@@ -27,6 +28,7 @@ interface AssessmentResults {
   totalScore: number
   maxScore: number
   completedAt: string
+  answers?: number[]
 }
 
 const levelConfig = {
@@ -78,8 +80,10 @@ const selfCaresuggestions = [
 
 export default function ResultsPage() {
   const router = useRouter()
+  const { user } = useFirebaseAuth()
   const [results, setResults] = useState<AssessmentResults | null>(null)
   const [level, setLevel] = useState<ResultLevel>("low")
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem("assessmentResults")
@@ -96,11 +100,38 @@ export default function ResultsPage() {
       } else {
         setLevel("high")
       }
+      
+      // Save to Firebase if user is logged in
+      if (user) {
+        saveToFirebase(parsed)
+      }
     } else {
       // No results, redirect to assessment
       router.push("/assessment")
     }
-  }, [router])
+  }, [router, user])
+
+  const saveToFirebase = async (resultsData: AssessmentResults) => {
+    try {
+      if (!user) return
+      
+      const percentage = (resultsData.totalScore / resultsData.maxScore) * 100
+      const scoreLevel = percentage <= 40 ? "low" : percentage <= 70 ? "moderate" : "high"
+      
+      await saveAssessmentResult(user.uid, {
+        assessmentType: resultsData.assessmentType,
+        assessmentTitle: resultsData.assessmentTitle,
+        score: resultsData.totalScore,
+        maxScore: resultsData.maxScore,
+        level: scoreLevel,
+        answers: resultsData.answers || [],
+        completedAt: resultsData.completedAt,
+      })
+    } catch (error) {
+      console.error("[v0] Error saving assessment:", error)
+      setSaveError("Failed to save assessment results")
+    }
+  }
 
   if (!results) {
     return (

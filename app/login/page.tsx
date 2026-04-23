@@ -9,23 +9,31 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Leaf, Eye, EyeOff } from "lucide-react"
+import { Leaf, Eye, EyeOff, AlertCircle } from "lucide-react"
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { signIn } = useFirebaseAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
     
-    // Simulate login - in production, this would be a real auth call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    router.push("/dashboard")
+    try {
+      await signIn(email, password)
+      router.push("/dashboard")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to sign in"
+      setError(errorMessage)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -48,6 +56,12 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">Email</Label>

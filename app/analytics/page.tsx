@@ -20,6 +20,8 @@ import {
 import { Navigation } from "@/components/navigation"
 import { cn } from "@/lib/utils"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth"
+import { getUserMoodEntries } from "@/lib/firestore"
 
 interface MoodEntry {
   id: string
@@ -70,25 +72,61 @@ const CHART_COLORS = {
 }
 
 export default function AnalyticsPage() {
+  const { user } = useFirebaseAuth()
   const [view, setView] = useState<ViewType>("weekly")
   const [entries, setEntries] = useState<MoodEntry[]>([])
   const [useSampleData, setUseSampleData] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const stored = localStorage.getItem("moodEntries")
-    if (stored) {
-      const parsed = JSON.parse(stored) as MoodEntry[]
-      if (parsed.length > 0) {
-        setEntries(parsed)
-      } else {
+    const loadMoodData = async () => {
+      setIsLoading(true)
+      
+      try {
+        if (user) {
+          // Fetch from Firebase
+          const firestoreEntries = await getUserMoodEntries(user.uid, 90)
+          if (firestoreEntries.length > 0) {
+            const transformedEntries: MoodEntry[] = firestoreEntries.map((entry: Record<string, unknown>) => ({
+              id: entry.id as string,
+              mood: entry.mood as number,
+              journal: entry.note as string || "",
+              date: entry.date as string,
+            }))
+            setEntries(transformedEntries)
+            setUseSampleData(false)
+          } else {
+            setUseSampleData(true)
+            setEntries(generateSampleData())
+          }
+        } else {
+          // Fallback to localStorage
+          const stored = localStorage.getItem("moodEntries")
+          if (stored) {
+            const parsed = JSON.parse(stored) as MoodEntry[]
+            if (parsed.length > 0) {
+              setEntries(parsed)
+              setUseSampleData(false)
+            } else {
+              setUseSampleData(true)
+              setEntries(generateSampleData())
+            }
+          } else {
+            setUseSampleData(true)
+            setEntries(generateSampleData())
+          }
+        }
+      } catch (error) {
+        console.error("[v0] Error loading mood data:", error)
         setUseSampleData(true)
         setEntries(generateSampleData())
+      } finally {
+        setIsLoading(false)
       }
-    } else {
-      setUseSampleData(true)
-      setEntries(generateSampleData())
     }
-  }, [])
+
+    loadMoodData()
+  }, [user])
 
   const chartData = useMemo(() => {
     const now = new Date()

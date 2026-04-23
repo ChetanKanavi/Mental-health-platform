@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Navigation } from "@/components/navigation"
 import { Check, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth"
+import { saveMoodEntry } from "@/lib/firestore"
 
 interface MoodEntry {
   id: string
@@ -68,6 +70,7 @@ type Step = "mood" | "emotions" | "triggers" | "journal"
 const steps: Step[] = ["mood", "emotions", "triggers", "journal"]
 
 export default function MoodTrackerPage() {
+  const { user } = useFirebaseAuth()
   const [currentStep, setCurrentStep] = useState<Step>("mood")
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([])
@@ -76,6 +79,7 @@ export default function MoodTrackerPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [recentEntries, setRecentEntries] = useState<MoodEntry[]>([])
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const currentStepIndex = steps.indexOf(currentStep)
 
@@ -135,6 +139,7 @@ export default function MoodTrackerPage() {
     if (selectedMood === null) return
 
     setIsSaving(true)
+    setSaveError(null)
 
     const newEntry: MoodEntry = {
       id: Date.now().toString(),
@@ -145,23 +150,38 @@ export default function MoodTrackerPage() {
       date: new Date().toISOString(),
     }
 
-    const updatedEntries = [newEntry, ...recentEntries].slice(0, 30)
-    localStorage.setItem("moodEntries", JSON.stringify(updatedEntries))
-    setRecentEntries(updatedEntries)
+    try {
+      // Save to Firebase if user is logged in
+      if (user) {
+        await saveMoodEntry(user.uid, {
+          mood: selectedMood,
+          emotions: selectedEmotions,
+          triggers: selectedTriggers,
+          note: journalEntry.trim(),
+          date: new Date().toISOString(),
+        })
+      }
 
-    await new Promise(resolve => setTimeout(resolve, 500))
+      const updatedEntries = [newEntry, ...recentEntries].slice(0, 30)
+      localStorage.setItem("moodEntries", JSON.stringify(updatedEntries))
+      setRecentEntries(updatedEntries)
 
-    setIsSaving(false)
-    setShowSuccess(true)
-    
-    // Reset form
-    setSelectedMood(null)
-    setSelectedEmotions([])
-    setSelectedTriggers([])
-    setJournalEntry("")
-    setCurrentStep("mood")
+      setIsSaving(false)
+      setShowSuccess(true)
+      
+      // Reset form
+      setSelectedMood(null)
+      setSelectedEmotions([])
+      setSelectedTriggers([])
+      setJournalEntry("")
+      setCurrentStep("mood")
 
-    setTimeout(() => setShowSuccess(false), 3000)
+      setTimeout(() => setShowSuccess(false), 3000)
+    } catch (error) {
+      console.error("[v0] Error saving mood entry:", error)
+      setSaveError("Failed to save mood entry")
+      setIsSaving(false)
+    }
   }
 
   const formatDate = (dateString: string) => {

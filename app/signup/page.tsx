@@ -9,25 +9,44 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Leaf, Eye, EyeOff } from "lucide-react"
+import { Leaf, Eye, EyeOff, AlertCircle } from "lucide-react"
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth"
+import { saveUserProfile } from "@/lib/firestore"
 
 export default function SignupPage() {
   const router = useRouter()
+  const { signUp } = useFirebaseAuth()
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
     
-    // Simulate signup - in production, this would be a real auth call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    router.push("/dashboard")
+    try {
+      // Create user account
+      const user = await signUp(email, password)
+      
+      // Save user profile to Firestore
+      await saveUserProfile(user.uid, {
+        firstName,
+        lastName,
+        email,
+        createdAt: new Date().toISOString(),
+      })
+      
+      router.push("/dashboard")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to create account"
+      setError(errorMessage)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -50,6 +69,12 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
