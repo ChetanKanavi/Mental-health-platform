@@ -6,10 +6,20 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
-import { Heart, Wind, BookOpen, Coffee, Phone, ArrowRight, RotateCcw } from "lucide-react"
+import { Heart, Wind, BookOpen, Coffee, Phone, ArrowRight, RotateCcw, Zap, Moon, Users, Lightbulb } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 type ResultLevel = "low" | "moderate" | "high"
+
+const assessmentResourceMap: Record<string, { categoryId: string; categoryName: string; icon: typeof Heart }> = {
+  "stress-anxiety": { categoryId: "stress-anxiety", categoryName: "Stress & Anxiety", icon: Zap },
+  depression: { categoryId: "depression", categoryName: "Depression", icon: Heart },
+  "sleep-quality": { categoryId: "sleep", categoryName: "Sleep Quality", icon: Moon },
+  burnout: { categoryId: "burnout", categoryName: "Burnout", icon: Heart },
+  "social-wellbeing": { categoryId: "social", categoryName: "Social Wellbeing", icon: Users },
+  "self-esteem": { categoryId: "self-esteem", categoryName: "Self-Esteem", icon: Lightbulb }
+}
 
 interface AssessmentResults {
   assessmentType?: string
@@ -170,6 +180,37 @@ export default function ResultsPage() {
               })}
             </div>
           </div>
+
+          {/* Personalized Resources */}
+          {results.assessmentType && assessmentResourceMap[results.assessmentType] && (
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-foreground mb-4">
+                Tailored Resources for You
+              </h2>
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <CardTitle className="text-base text-foreground">
+                        Detailed {assessmentResourceMap[results.assessmentType].categoryName} Resources
+                      </CardTitle>
+                      <CardDescription className="mt-2">
+                        Based on your assessment, we recommend exploring resources specifically designed for managing {assessmentResourceMap[results.assessmentType].categoryName.toLowerCase()}. These include practical techniques, strategies, and exercises tailored to your needs.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Link href={`/resources?category=${assessmentResourceMap[results.assessmentType].categoryId}`}>
+                    <Button className="w-full gap-2">
+                      Explore {assessmentResourceMap[results.assessmentType].categoryName} Resources
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Crisis Support - Only show for high level */}
           {level === "high" && (
