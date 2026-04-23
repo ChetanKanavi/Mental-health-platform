@@ -15,9 +15,3 @@ Any changes you make to your deployed app will be automatically pushed to this r
 Your project is live at:
 
 **[https://vercel.com/chetankanavi054-1170s-projects/v0-mental-health-platform-ui](https://vercel.com/chetankanavi054-1170s-projects/v0-mental-health-platform-ui)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.app/chat/ivhjrWXHFCE](https://v0.app/chat/ivhjrWXHFCE)**
