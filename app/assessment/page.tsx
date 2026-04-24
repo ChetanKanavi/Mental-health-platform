@@ -194,43 +194,49 @@ export default function AssessmentPage() {
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {assessmentTypes.map((assessment) => {
-                const Icon = assessment.icon
-                return (
-                  <Card 
-                    key={assessment.id}
-                    className="cursor-pointer transition-all hover:border-primary/50 hover:shadow-md group"
-                    onClick={() => handleSelectAssessment(assessment)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
-                        <Icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <CardTitle className="text-lg text-foreground">
-                        {assessment.title}
-                      </CardTitle>
-                      <CardDescription className="text-sm">
-                        {assessment.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {assessment.questions.length} questions
-                        </span>
-                        <span className="text-muted-foreground">
-                          {assessment.duration}
-                        </span>
-                      </div>
-                      <Button className="w-full mt-4 gap-2 bg-transparent" variant="outline">
-                        Start Assessment
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )
-              })}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 w-full">
+              {assessmentTypes && assessmentTypes.length > 0 ? (
+                assessmentTypes.map((assessment) => {
+                  const Icon = assessment.icon
+                  return (
+                    <button
+                      key={assessment.id}
+                      onClick={() => handleSelectAssessment(assessment)}
+                      className="text-left"
+                    >
+                      <Card className="h-full cursor-pointer transition-all border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 group">
+                        <CardHeader className="pb-3">
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+                            <Icon className="w-6 h-6 text-primary" />
+                          </div>
+                          <CardTitle className="text-lg text-foreground">
+                            {assessment.title}
+                          </CardTitle>
+                          <CardDescription className="text-sm">
+                            {assessment.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="flex items-center justify-between text-sm mb-4">
+                            <span className="text-muted-foreground">
+                              {assessment.questions.length} questions
+                            </span>
+                            <span className="text-muted-foreground">
+                              {assessment.duration}
+                            </span>
+                          </div>
+                          <Button className="w-full gap-2" variant="outline">
+                            Start Assessment
+                            <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </button>
+                  )
+                })
+              ) : (
+                <p className="text-muted-foreground col-span-full">No assessments available</p>
+              )}
             </div>
 
             <p className="mt-8 text-xs text-muted-foreground text-center">
